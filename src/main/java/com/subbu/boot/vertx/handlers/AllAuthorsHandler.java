@@ -2,6 +2,7 @@ package com.subbu.boot.vertx.handlers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.subbu.boot.vertx.annotations.VertxHandler;
 import com.subbu.boot.vertx.repos.ArticleRepository;
 import com.subbu.boot.vertx.repos.AuthorRepository;
 import io.vertx.core.Handler;
@@ -14,7 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component
+@VertxHandler(message="authors.all")
 public class AllAuthorsHandler implements Handler<Message<String>> {
 
     private final ObjectMapper mapper = Json.mapper;

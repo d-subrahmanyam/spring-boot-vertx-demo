@@ -1,15 +1,16 @@
 package com.subbu.boot.vertx.verticles;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.subbu.boot.vertx.annotations.VerticleMessage;
 import com.subbu.boot.vertx.annotations.Verticles;
+import com.subbu.boot.vertx.annotations.VertxHandler;
 import com.subbu.boot.vertx.contracts.IVerticle;
-import com.subbu.boot.vertx.handlers.AllArticlesHandler;
-import com.subbu.boot.vertx.repos.ArticleRepository;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.json.Json;
+import io.vertx.core.Handler;
+import io.vertx.core.eventbus.Message;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import java.util.Map;
 
 @Verticles(messages = {
         @VerticleMessage(path="/api/articles", messages = "articles.all"),
@@ -18,19 +19,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Slf4j
 public class ArticleVerticle extends AbstractVerticle implements IVerticle {
 
-    private final ObjectMapper mapper = Json.mapper;
-
     @Autowired
-    private ArticleRepository articleRepository;
-
-    @Autowired
-    private AllArticlesHandler allArticlesHandler;
+    private ApplicationContext applicationContext;
 
     @Override
     public void start() throws Exception {
         super.start();
-        vertx
-                .eventBus()
-                .<String>consumer("articles.all", allArticlesHandler);
+        Map<String, Object> handlers = applicationContext.getBeansWithAnnotation(VertxHandler.class);
+        log.info("handlers - {}", handlers);
+        handlers
+                .keySet()
+                .forEach(handlerName -> {
+                    Handler<Message<String>> handler = (Handler<Message<String>>) handlers.get(handlerName);
+                    VertxHandler vertxHandler = handler.getClass().getAnnotation(VertxHandler.class);
+                    log.info("message - {} | handler - {}", vertxHandler.message(), handler.getClass());
+                    vertx
+                            .eventBus()
+                            .consumer(vertxHandler.message(), handler);
+                });
+
     }
 }
