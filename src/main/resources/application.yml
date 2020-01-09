@@ -1,0 +1,5 @@
+logging:
+  level:
+    io.vertx: DEBUG
+    org.springframework: INFO
+    com.subbu.boot.vertx: INFO
